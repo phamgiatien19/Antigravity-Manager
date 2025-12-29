@@ -79,6 +79,7 @@ pub async fn handle_messages(
     
     
     crate::modules::logger::log_info(&format!("[{}] Received Claude request for model: {}, content_preview: {:.100}...", trace_id, request.model, latest_msg));
+    tracing::info!("[{}] Full Claude Request: {}", trace_id, serde_json::to_string_pretty(&request).unwrap_or_default());
 
     // 1. 获取 会话 ID (已废弃基于内容的哈希，改用 TokenManager 内部的时间窗口锁定)
     let session_id: Option<&str> = None;
@@ -229,7 +230,10 @@ pub async fn handle_messages(
         // let _trace_id = format!("req_{}", chrono::Utc::now().timestamp_subsec_millis());
 
         let gemini_body = match transform_claude_request_in(&request_with_mapped, &project_id) {
-            Ok(b) => b,
+            Ok(b) => {
+                tracing::info!("[{}] Transformed Gemini Body: {}", trace_id, serde_json::to_string_pretty(&b).unwrap_or_default());
+                b
+            },
             Err(e) => {
                  return (
                     StatusCode::INTERNAL_SERVER_ERROR,
@@ -336,6 +340,7 @@ pub async fn handle_messages(
         // 处理错误
         let error_text = response.text().await.unwrap_or_else(|_| format!("HTTP {}", status));
         last_error = format!("HTTP {}: {}", status, error_text);
+        tracing::error!("[{}] Upstream Error Response: {}", trace_id, error_text);
         
         let status_code = status.as_u16();
         

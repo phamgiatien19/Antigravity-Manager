@@ -13,7 +13,7 @@
     "withGlobalTauri": false,
     "windows": [
       {
-        "title": "Antigravity Tools (Modified By LL)",
+        "title": "Antigravity Tools",
         "width": 1024,
         "height": 700,
         "titleBarStyle": "Overlay",
